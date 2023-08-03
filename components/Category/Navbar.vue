@@ -7,7 +7,6 @@
       </LazyHydrate>
     </div>
     <div class="navbar__main">
-      <LazyHydrate on-interaction>
         <SfButton
           class="sf-button--text navbar__filters-button"
           data-cy="category-btn_filters"
@@ -23,7 +22,6 @@
           />
           {{ $t('Filters') }}
         </SfButton>
-      </LazyHydrate>
 
       <div class="navbar__sort desktop-only">
         <span class="navbar__label">{{ $t('Sort by') }}:</span>
@@ -216,7 +214,7 @@ export default defineComponent({
     }
   }
   &__select {
-    --select-width: 220px;
+    --select-width: 180px;
     --select-padding: 0;
     --select-height: auto;
     --select-selected-padding: 0 var(--spacer-lg) 0 var(--spacer-2xs);
@@ -228,6 +226,8 @@ export default defineComponent({
       font-family: var(--font-family--secondary);
       font-weight: var(--font-weight--light);
       margin: 0;
+      border: 1px solid black;
+      border-radius: 3px;
     }
     ::v-deep .sf-select__placeholder {
       --select-option-font-size: var(--font-size-sm);

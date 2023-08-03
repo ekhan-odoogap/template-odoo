@@ -84,6 +84,7 @@ import {
   SfInput,
   SfCircleIcon
 } from '@storefront-ui/vue';
+import { onSSR } from '@vue-storefront/core';
 import { computed, ref } from '@nuxtjs/composition-api';
 import { useCart, checkoutGetters, cartGetters } from '@vue-storefront/odoo';
 
@@ -99,15 +100,31 @@ export default {
     SfCircleIcon
   },
   setup (_, {root}) {
-    const { cart, removeItem, updateItemQty, applyCoupon } = useCart();
+    const { cart, load: loadCart, removeItem, updateItemQty, applyCoupon } = useCart();
     const listIsHidden = ref(false);
     const promoCode = ref('');
     const showPromoCode = ref(false);
     const products = computed(() => cartGetters.getItems(cart.value));
-    const totalItems = computed(() => cartGetters.getTotalItems(cart.value));
     const totals = computed(() => cartGetters.getTotals(cart.value));
     const discounts = computed(() => cartGetters.getDiscounts(cart.value));
     const shippingMethodPrice = computed(() => checkoutGetters.getShippingMethodPrice(cart.value));
+    const cartItems = computed(() => {
+      return cartGetters.getItems(cart.value).map((item) => {
+        return item.quantity
+      })
+    })
+    const totalItems = computed(() => {
+      let array = cartItems.value
+      let sum = 0
+      array.forEach((num) => {
+        sum += num;
+      })
+      return sum
+    });
+
+    onSSR(async () => {
+      await loadCart();
+    });
 
     return {
       shippingMethodPrice,

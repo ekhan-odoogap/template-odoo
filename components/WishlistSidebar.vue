@@ -69,15 +69,9 @@
                     />
                   </div>
                 </template>
-                <template #input="{}">&nbsp;</template>
-                <template #actions>
-                <SfButton
-                  class="sf-button--text desktop-only hidden"
-                  @click="addItemToWishlist({ product })"
-                >
-                  {{ $t('Save for later') }}
-                </SfButton>
-              </template>
+                <template #actions> 
+                  <div class="hidden"></div>                
+                </template>
               </SfCollectedProduct>
             </transition-group>
           </div>
@@ -97,8 +91,6 @@
         <div v-else class="empty-wishlist" key="empty-wishlist">
           <div class="empty-wishlist__banner">
             <SfImage
-              :width="256"
-              :height="176"
               src="/icons/empty-cart.svg"
               alt="Empty bag"
               class="empty-wishlist__icon"
@@ -112,12 +104,14 @@
         </div>
       </transition>
       <template #content-bottom>
-        <SfButton
-          @click="toggleWishlistSidebar"
-          class="sf-button--full-width color-secondary"
-        >
-          {{ $t('Start shopping') }}
-        </SfButton>
+        <nuxt-link to="/">
+          <SfButton
+            @click="toggleWishlistSidebar"
+            class="sf-button--full-width color-primary"
+          >
+            {{ $t('Start shopping') }}
+          </SfButton>
+      </nuxt-link>
       </template>
     </SfSidebar>
   </div>

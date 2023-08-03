@@ -181,8 +181,6 @@
               :src="require('@storefront-ui/shared/icons/empty_cart.svg')"
               alt="Empty cart"
               class="empty-cart__image"
-              :width="140"
-              :height="200"
             />
             <SfHeading
               :title="$t('Your cart is empty')"
@@ -193,10 +191,12 @@
                 )
               "
             />
-            <SfButton
+            <nuxt-link to="/">
+              <SfButton
               class="sf-button--full-width color-primary empty-cart__button"
               >{{ $t("Start shopping") }}</SfButton
             >
+            </nuxt-link>
           </div>
         </transition>
       </div>
@@ -214,15 +214,14 @@ import {
   SfOrderSummary
 } from '@storefront-ui/vue';
 import { ref } from '@nuxtjs/composition-api';
-import { computed } from '@nuxtjs/composition-api';
+import { computed, onMounted } from '@nuxtjs/composition-api';
 import {
   useCart,
   useUser,
   cartGetters,
   useWishlist
 } from '@vue-storefront/odoo';
-import { useUiState } from '~/composables';
-import { onSSR } from '@vue-storefront/core';
+import { useUiState, useUiNotification } from '~/composables';
 
 export default {
   name: 'DetailedCart',
@@ -238,23 +237,25 @@ export default {
   setup(_, { root }) {
     // simple test submodule 3
     const { isAuthenticated } = useUser();
-    const { cart, removeItem, updateItemQty } = useCart();
+    const { cart, load: loadCart, removeItem, updateItemQty } = useCart();
     const { isCartSidebarOpen, toggleCartSidebar } = useUiState();
 
     const products = computed(() => cartGetters.getItems(cart.value));
     const totals = computed(() => cartGetters.getTotals(cart.value));
     const totalItems = computed(() => cartGetters.getTotalItems(cart.value));
+    const { send } = useUiNotification();
     const { addItem: addItemToWishlist } = useWishlist();
 
     const addProductToWishList = (product) => {
       addItemToWishlist({
         product: { ...product.product, firstVariant: product.product.id }
       });
+      send({ message: "Product added to wishlist", type: 'info' });
     };
-
-    onSSR(async () => {
-      // await loadCart();
+    onMounted(async () => {
+      await loadCart();
     });
+
     const summary = ref([
       {
         name: 'Products',
@@ -298,7 +299,6 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import "~@storefront-ui/vue/styles";
 #detailed-cart {
   box-sizing: border-box;
   @include for-desktop {
@@ -498,17 +498,3 @@ hr {
 }
 </style>
 
-<style lang="scss">
-@import "~@storefront-ui/vue/styles";
-.oderSummary .sf-order-summary {
-  &__heading {
-    padding-left: 30px;
-  }
-  &__property {
-    font-size: var(--font-size-xl);
-  }
-}
-.custom__margin {
-  margin-top: 5px !important;
-}
-</style>

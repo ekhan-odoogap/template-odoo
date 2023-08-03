@@ -76,8 +76,6 @@
         <div v-else key="empty-cart" class="empty-cart">
           <div class="empty-cart__banner">
             <SfImage
-              :width="256"
-              :height="176"
               alt="Empty bag"
               class="empty-cart__image"
               src="/icons/empty-cart.svg"
@@ -123,11 +121,13 @@
             </nuxt-link>
           </div>
           <div v-else>
-            <SfButton
-              class="sf-button--full-width color-primary"
-              @click="toggleCartSidebar"
-              >{{ $t("Go back shopping") }}</SfButton
-            >
+            <nuxt-link to="/">
+              <SfButton
+                class="sf-button--full-width color-primary"
+                @click="toggleCartSidebar"
+                >{{ $t("Go back shopping") }}</SfButton
+              >
+          </nuxt-link>
           </div>
         </transition>
       </template>
@@ -152,7 +152,7 @@ import {
   cartGetters,
   useWishlist
 } from '@vue-storefront/odoo';
-import { useUiState } from '~/composables';
+import { useUiState, useUiNotification } from '~/composables';
 import { onSSR } from '@vue-storefront/core';
 
 export default {
@@ -173,8 +173,21 @@ export default {
     const { isAuthenticated } = useUser();
     const products = computed(() => cartGetters.getItems(cart.value));
     const totals = computed(() => cartGetters.getTotals(cart.value));
-    const totalItems = computed(() => cartGetters.getTotalItems(cart.value));
+    const cartItems = computed(() => {
+      return cartGetters.getItems(cart.value).map((item) => {
+        return item.quantity
+      })
+    })
+    const totalItems = computed(() => {
+      let array = cartItems.value
+      let sum = 0
+      array.forEach((num) => {
+        sum += num;
+      })
+      return sum
+    });
     const { addItem: addItemToWishlist } = useWishlist();
+    const { send } = useUiNotification();
     onSSR(async () => {
       // await loadCart();
     });
@@ -183,6 +196,7 @@ export default {
       addItemToWishlist({
         product: { ...product.product, firstVariant: product.product.id }
       });
+      send({ message: "Product added to wishlist", type: 'info' });
     };
 
     return {

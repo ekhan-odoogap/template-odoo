@@ -6,7 +6,7 @@
 import { useRoute, useRouter } from '@nuxtjs/composition-api';
 import { Category } from '@vue-storefront/odoo-api/server';
 import hash from 'object-hash';
-
+import { facetGetters, useFacet } from '@vue-storefront/odoo';
 const queryParamsNotFilters = ['page', 'sort', 'itemsPerPage'];
 
 const useUiHelpers = (): any => {
@@ -24,15 +24,44 @@ const useUiHelpers = (): any => {
     return path;
   };
 
-  const getFacetsFromURL = () : ParamsFromUrl => {
+
+
+  const getAttributeValues = (filterKey, value) => {
+    const { result } = useFacet();
+    const facets = [
+      {
+        id: null,
+        label: 'Price',
+        type: 'price'
+      },
+      ...facetGetters.getGrouped(result?.value, ['color', 'size'])
+    ];
+    const attribute = facets?.find(item => {
+      return item.label == filterKey
+    })
+    let option = {}
+    if (attribute) {
+      option = attribute?.options.find(item => {
+        return Number(item.value) === Number(value.slice(0,2))
+      })
+    }
+    return option;
+  }
+
+  const getFacetsFromURL = (): ParamsFromUrl => {
     const filters: string[] = [];
     if (query) {
       Object.keys(query).forEach((filterKey) => {
         if (![...queryParamsNotFilters, 'price'].includes(filterKey)) {
-          if(query[filterKey].includes(',')){
-            filters.push(Number(query[filterKey]));
-          }else{
-            filters.push(Number(query[filterKey].slice(0, 2)));
+          if (query[filterKey].includes(',')) {
+            query[filterKey]?.split(',').forEach(label => {
+              const getProperAttribute = getAttributeValues(filterKey, label?.split('-')[0])
+              filters.push(getProperAttribute?.id);
+            })
+          } else {
+            const label = query[filterKey]?.split(',')[0];
+            const getProperAttribute = getAttributeValues(filterKey, label);
+            filters.push(getProperAttribute?.id);
           }
         }
       });
@@ -40,16 +69,23 @@ const useUiHelpers = (): any => {
 
     const price = query?.price?.split('-');
 
-    const pageSize = query.itemsPerPage ? parseInt(query.itemsPerPage) : 10;
+    const pageSize = query.itemsPerPage ? parseInt(query.itemsPerPage) : 12;
     const sort = query?.sort?.split(',') || [];
     const page = query?.page || 1;
 
     const productFilters = {
       minPrice: Number(price?.[0]) || null,
       maxPrice: Number(price?.[1]) || null,
-      attributeValueId: filters,
+      attribValues: filters,
       categorySlug: path === '/' ? null : pathToSlug()
     };
+    const filtersForHash = {
+      ...productFilters,
+      pageSize,
+      price,
+      page,
+      sort
+    }
 
     return {
       fetchCategory: true,
@@ -59,8 +95,8 @@ const useUiHelpers = (): any => {
       },
       productParams: {
         pageSize,
-        currentPage: page,
-        cacheKey: `API-P${hash(productFilters, { algorithm: 'md5' })}`,
+        currentPage: parseInt(page),
+        cacheKey: `API-P${hash(filtersForHash, { algorithm: 'md5' })}`,
         search: '',
         sort: { [sort[0]]: sort[1] },
         filter: productFilters
@@ -88,12 +124,22 @@ const useUiHelpers = (): any => {
       const valueList = query[label].split(',');
 
       valueList.forEach((value) => {
-        const item = {
-          filterName: label,
-          label: `${value.slice(0, 2)}`,
-          id: `${value.slice(0, 2)}`
-        };
-        formatedFilters.push(item);
+        if(label === 'price') {
+          const item = {
+            filterName: label,
+            label: `${value.slice(0, 2)}`,
+            id: value
+          };
+          formatedFilters.push(item);
+        } else {
+          const newVal = value?.split('-')
+          const item = {
+            filterName: label,
+            label: `${newVal[1] ?? newVal[0]}`,
+            id: `${newVal[0]}`
+          };
+          formatedFilters.push(item);
+        }
       });
     });
 
@@ -103,11 +149,19 @@ const useUiHelpers = (): any => {
   const changeFilters = (filters) => {
     const formatedFilters = {};
     filters.forEach((element) => {
-      if (formatedFilters[element.filterName]) {
-        formatedFilters[element.filterName] += `,${element.id}-${element.label}`;
-        return;
+      if(element.filterName == "Size") {
+        if (formatedFilters[element.filterName]) {
+          formatedFilters[element.filterName] += `,${element.id}-${element.label}`;
+          return;
+        }
+        formatedFilters[element.filterName] = `${element.id}-${element.label}`;
+      } else {
+        if (formatedFilters[element.filterName]) {
+          formatedFilters[element.filterName] += `,${element.id}`;
+          return;
+        }
+        formatedFilters[element.filterName] = `${element.id}`;
       }
-      formatedFilters[element.filterName] = `${element.id}-${element.label}`;
     });
 
     let allQuery = {};
@@ -119,6 +173,8 @@ const useUiHelpers = (): any => {
         allQuery = { itemsPerPage: query.itemsPerPage };
       }
     }
+
+    delete allQuery.page
 
     router.push({ query: allQuery });
   };

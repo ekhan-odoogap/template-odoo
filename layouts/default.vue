@@ -10,14 +10,14 @@
     <div id="layout">
       <nuxt :key="$route.fullPath" />
 
-      <MobileMenuSidebar />
+      <MobileMenuSidebar :critical="false"/>
       <LazyHydrate when-visible>
         <BottomNavigation />
       </LazyHydrate>
-      <CartSidebar />
-      <WishlistSidebar />
-      <LoginModal />
-      <Notification />
+      <CartSidebar :critical="false"/>
+      <WishlistSidebar :critical="false"/>
+      <LoginModal :critical="false"/>
+      <Notification :critical="false"/>
     </div>
     <LazyHydrate when-visible>
       <AppFooter />
@@ -26,29 +26,26 @@
 </template>
 
 <script>
-import AppHeader from '~/components/AppHeader.vue';
-import BottomNavigation from '~/components/BottomNavigation.vue';
-import AppFooter from '~/components/AppFooter.vue';
-import TopBar from '~/components/TopBar.vue';
-import CartSidebar from '~/components/CartSidebar.vue';
-import WishlistSidebar from '~/components/WishlistSidebar.vue';
-import LoginModal from '~/components/LoginModal.vue';
 import LazyHydrate from 'vue-lazy-hydration';
-import Notification from '~/components/Notification';
+import speedkitHydrate from 'nuxt-speedkit/hydrate';
+import CartSidebar from '@/components/CartSidebar.vue';
+import WishlistSidebar from '@/components/WishlistSidebar.vue';
+import LoginModal from '@/components/LoginModal.vue';
 
 export default {
   name: 'DefaultLayout',
 
   components: {
     LazyHydrate,
-    TopBar,
-    AppHeader,
-    BottomNavigation,
-    AppFooter,
+    MobileMenuSidebar: speedkitHydrate(() => import('@/components/MobileMenuSidebar')),
+    TopBar: speedkitHydrate(() => import('@/components/TopBar')),
+    AppHeader: speedkitHydrate(() => import('@/components/AppHeader')),
+    AppFooter: speedkitHydrate(() => import('@/components/AppFooter')),
+    Notification: speedkitHydrate(() => import('@/components/Notification')),
+    BottomNavigation: speedkitHydrate(() => import('@/components/BottomNavigation')),
     CartSidebar,
     WishlistSidebar,
     LoginModal,
-    Notification
   }
 };
 </script>

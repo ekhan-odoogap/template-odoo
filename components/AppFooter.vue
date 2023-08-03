@@ -30,20 +30,21 @@
     </SfFooterColumn>
     <SfFooterColumn title="Social" class="desktop-only">
       <div class="footer__socials">
-        <SfImage
-          class="footer__social-image"
-          v-for="item in social"
-          :key="item"
-          :src="addBasePath('/icons/' + item + '.svg')"
-          :alt="item"
-          :width="32"
-          :height="32"
-        />
+        <a v-for="item in social" :href="item.url" target="_blank" >
+          <SfImage
+            class="footer__social-image"          
+            :key="item.id"
+            :src="addBasePath('/icons/' + item.brand + '.svg')"
+            :alt="item.brand"
+            :width="32"
+            :height="32"
+          />
+        </a>
       </div>
     </SfFooterColumn>
 
     <SfFooterColumn title="Language" class="desktop-only">
-      <LocaleSelector />
+      <LocaleSelector class="py-3.5" />
     </SfFooterColumn>
 
     <SfFooterColumn class="desktop-only">
@@ -63,7 +64,7 @@
                 placeholder="Type your email address"
                 style="
                   width: 242px;
-                  max-height: 46px;
+                  height: 46px;
                   font-size: 16px;
                   color: #43464e;
                   background-color: #f1f2f3;
@@ -218,7 +219,28 @@ export default {
       departments: ['Women fashion', 'Men fashion', 'Kidswear', 'Home'],
       help: ['Customer service', 'Size guide', 'Contact us'],
       paymentsDelivery: ['Purchase terms', 'Guarantee'],
-      social: ['facebook', 'pinterest', 'google', 'twitter', 'youtube'],
+      social: [
+        {
+          id:1,
+          brand: 'facebook',
+          url: 'https://www.facebook.com/'
+        },
+        {
+          id:2,
+          brand: 'pinterest',
+          url: 'https://www.pinterest.com/'
+        },
+        {
+          id:3,
+          brand: 'twitter',
+          url: 'https://twitter.com/'
+        },
+        {
+          id:4,
+          brand: 'youtube',
+          url: 'https://www.youtube.com/'
+        },
+      ],
       isMobile: false,
       desktopMin: 1024
     };
@@ -226,7 +248,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .footer {
   margin-bottom: 3.75rem;
   @include for-desktop {

@@ -132,7 +132,7 @@ import {
   useFacet
 } from '@vue-storefront/odoo';
 import { clickOutside } from '@storefront-ui/vue/src/utilities/directives/click-outside/click-outside-directive.js';
-import { computed, ref, watch } from '@nuxtjs/composition-api';
+import { computed, ref, watch, onMounted } from '@nuxtjs/composition-api';
 import { onSSR } from '@vue-storefront/core';
 import { useUiHelpers } from '~/composables';
 import LocaleSelector from './LocaleSelector';
@@ -168,10 +168,18 @@ export default {
     const { search: searchProductApi, result } = useFacet('AppHeader:Search');
     const { categories: topCategories, search: searchTopCategoryApi } =
       useCategories('AppHeader:TopCategories');
-
+    const cartItems = computed(() => {
+      return cartGetters.getItems(cart.value).map((item) => {
+        return item.quantity
+      })
+    })
     const cartTotalItems = computed(() => {
-      const count = cartGetters.getTotalItems(cart.value);
-      return count ? count.toString() : root.$cookies.get('cart-size');
+      let array = cartItems.value
+      let sum = 0
+      array.forEach((num) => {
+        sum += num;
+      })
+      return sum
     });
     const accountIcon = computed(() =>
       isAuthenticated.value ? 'profile_fill' : 'profile'
@@ -218,9 +226,14 @@ export default {
       term.value = '';
       return searchBarRef.value.$el.children[0].focus();
     };
+
+    // const isAuthenticated = computed(() => root.$cookies.get('odoo-user'));
+
     // TODO: https://github.com/DivanteLtd/vue-storefront/issues/4927
     const handleAccountClick = async () => {
       if (isAuthenticated.value) {
+        root.$cookies.remove('odoo-user');
+        await loadUser();
         return root.$router.push(root.localePath('/my-account'));
       }
 
@@ -256,13 +269,9 @@ export default {
       }
     );
 
+
     onSSR(async () => {
-      await Promise.all([
-        searchTopCategoryApi({
-          filter: { parent: true }
-        }),
-        loadUser()
-      ]);
+      await searchTopCategoryApi({filter: { parent: true }});
     });
 
     return {

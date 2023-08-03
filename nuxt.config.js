@@ -19,7 +19,6 @@ export default {
     }
   },
   components: [
-    '~/components/',
     '~/components/Core/Atoms'
   ],
   css: ['@/assets/styles.scss'],
@@ -272,18 +271,18 @@ export default {
         file: 'en.json',
         iso: 'en'
       },
-      {
-        code: 'de',
-        label: 'German',
-        file: 'de.json',
-        iso: 'de'
-      },
-      {
-        code: 'ru',
-        label: 'Russian',
-        file: 'ru.json',
-        iso: 'ru'
-      }
+      // {
+      //   code: 'de',
+      //   label: 'German',
+      //   file: 'de.json',
+      //   iso: 'de'
+      // },
+      // {
+      //   code: 'ru',
+      //   label: 'Russian',
+      //   file: 'ru.json',
+      //   iso: 'ru'
+      // }
     ],
     defaultLocale: 'en',
     lazy: true,
@@ -362,7 +361,7 @@ export default {
         'postcss-custom-properties': false
       }
     },
-    transpile: ['vee-validate/dist/rules'],
+    transpile: ['vee-validate/dist/rules', /^@storefront-ui/],
     extend(config, ctx) {
       if (ctx.isDev) {
         config.devtool = ctx.isClient ? 'source-map' : 'inline-source-map';

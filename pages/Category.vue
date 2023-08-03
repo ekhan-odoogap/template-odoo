@@ -60,6 +60,8 @@
             tag="div"
             class="products__grid"
           >
+            <SfSkeleton type="image" />
+           
             <SfProductCard
               data-cy="category-product-card"
               v-for="(product, i) in products"
@@ -76,7 +78,7 @@
                   productGetters.getImageFilename(product)
                 )
               "
-              :nuxtImgConfig="{ fit: 'cover', preload: true }"
+              :nuxtImgConfig="{ loading: 'eager', fit: 'cover', preload: true }"
               image-tag="nuxt-img"
               :regular-price="
                 $n(productGetters.getPrice(product).regular, 'currency')
@@ -98,12 +100,32 @@
               @click:wishlist="
                 isInWishlist({ product })
                   ? removeItemFromWishList({ product: { product } })
-                  : addItemToWishlist({ product })
+                  : addProductToWishList(product)
               "
               @click:add-to-cart="
                 addItemToCart({ product, quantity: 1 }), toggleCartSidebar()
               "
-            />
+            >
+              <template #image>
+                <nuxt-link :to="localePath(productGetters.getSlug(product))">
+                  <SfImage
+                    class="sf-product-card__image"
+                    :src="$image(
+                      productGetters.getCoverImage(product),
+                      216,
+                      288,
+                      productGetters.getImageFilename(product)
+                    )"
+                    :alt="productGetters.getName(product)"
+                    loading="eager"
+                    :width="216"
+                    :height="288"
+                    image-tag="nuxt-img"
+                    :nuxt-img-config="{ fit: 'cover', preload: true }"
+                  />
+                </nuxt-link>
+              </template>
+            </SfProductCard>
           </transition-group>
           <transition-group
             v-else
@@ -143,7 +165,7 @@
               "
               :isInWishlist="isInWishlist({ product })"
               class="products__product-card-horizontal"
-              @click:wishlist="addItemToWishlist({ product })"
+              @click:wishlist="addProductToWishList(product)"
               @click:add-to-cart="
                 addItemToCart({ product, quantity: products[i].qty || 1 }),
                   toggleCartSidebar()
@@ -155,7 +177,7 @@
                 <SfButton
                   class="sf-button--text desktop-only"
                   style="margin: 0 0 1rem auto; display: block"
-                  @click="addItemToWishlist({ product })"
+                  @click="addProductToWishList(product)"
                 >
                   {{ $t('Save for later') }}
                 </SfButton>
@@ -221,17 +243,17 @@
       </SfLoader>
     </div>
 
-    <LazyHydrate when-idle>
-      <CategoryFilterSideBar :facetsList="result" />
-    </LazyHydrate>
+    <CategoryFilterSideBar :facetsList="result" />
   </div>
 </template>
 
 <script >
+import CategoryFilterSideBar from "@/components/Category/FilterSideBar.vue"
 import {
   SfButton,
   SfList,
   SfMenuItem,
+  SfSkeleton,
   SfProductCard,
   SfHeading,
   SfProductCardHorizontal,
@@ -259,13 +281,34 @@ import {
   facetGetters
 } from '@vue-storefront/odoo';
 import { useCache, CacheTagPrefix } from '@vue-storefront/cache';
-import { useUiHelpers, useUiState } from '~/composables';
+import { useUiHelpers, useUiState, useUiNotification } from '~/composables';
 import { onSSR } from '@vue-storefront/core';
 import LazyHydrate from 'vue-lazy-hydration';
+import speedkitHydrate from 'nuxt-speedkit/hydrate';
 
 export default defineComponent({
   name: 'Category',
   transition: 'fade',
+  components: {
+    CategoryNavbar: speedkitHydrate(() => import('@/components/Category/Navbar')),
+    CategoryFilterSideBar,
+    SfSelect,
+    SfProperty,
+    SfButton,
+    SfList,
+    SfSkeleton,
+    SfProductCard,
+    SfProductCardHorizontal,
+    SfPagination,
+    SfMenuItem,
+    SfHeading,
+    SfAccordion,
+    SfBreadcrumbs,
+    SfCheckbox,
+    SfLoader,
+    LazyHydrate,
+    SfImage
+  },
   setup(props, { root }) {
     const th = useUiHelpers();
     const generic = ref('');
@@ -279,7 +322,7 @@ export default defineComponent({
       isInWishlist
     } = useWishlist();
     const { result, search, loading } = useFacet();
-
+    const { send } = useUiNotification();
     const route = useRoute();
     const { params, query } = route.value;
 
@@ -287,6 +330,11 @@ export default defineComponent({
     const categoryTree = computed(() =>
       facetGetters.getCategoryTree(result.value)
     );
+
+    const addProductToWishList = (product) => {
+      addItemToWishlist({ product })
+      send({ message: "Product added to wishlist", type: 'info' });
+    };
 
     const pagination = computed(() => facetGetters.getPagination(result.value));
     const showProducts = computed(
@@ -357,6 +405,7 @@ export default defineComponent({
       productGetters,
       pagination,
       breadcrumbs,
+      addProductToWishList,
       addItemToWishlist,
       removeItemFromWishList,
       addItemToCart,
@@ -366,23 +415,6 @@ export default defineComponent({
       result,
       currentCategoryNameForAccordion
     };
-  },
-  components: {
-    SfSelect,
-    SfProperty,
-    SfButton,
-    SfList,
-    SfProductCard,
-    SfProductCardHorizontal,
-    SfPagination,
-    SfMenuItem,
-    SfHeading,
-    SfAccordion,
-    SfBreadcrumbs,
-    SfCheckbox,
-    SfLoader,
-    LazyHydrate,
-    SfImage
   },
   head: {
     script: [
