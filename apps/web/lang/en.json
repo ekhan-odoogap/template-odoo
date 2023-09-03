@@ -269,6 +269,7 @@
       },
       "personalData": {
         "yourName": "Your name",
+        "yourEmail": "Your email",
         "firstName": "First name",
         "lastName": "Last name",
         "edit": "Edit",

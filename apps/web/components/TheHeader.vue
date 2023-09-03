@@ -74,7 +74,7 @@ const user = computed(() => (isAuthenticated.value ? 'Mahade' : 'Log In'));
 const handleAccountClick = async () => {
   if (isAuthenticated.value) {
     // await loadUser();
-    router.push('/my-account');
+    router.push('/my-account/personal-data');
   } else {
     router.push('/login');
   }

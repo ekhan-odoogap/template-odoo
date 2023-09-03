@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useUser } from '@/composables';
 import { SfButton, SfInput } from '@storefront-ui/vue';
-import toastClient from 'plugins/toast.client';
 import { useToast } from 'vue-toastification';
 
 definePageMeta({

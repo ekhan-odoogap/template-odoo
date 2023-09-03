@@ -10,7 +10,7 @@ export const useUser: any = () => {
     updateUser: null,
     resetPassword: null,
   });
-  const isAuthenticated = ref(false);
+  const isAuthenticated = ref(true);
 
   const loadAuthUser = async () => {
     try {
