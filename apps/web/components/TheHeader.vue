@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useCategory } from '@/composables';
+import { useCategory, useUser } from '@/composables';
 import {
   SfButton,
   SfDrawer,
@@ -23,6 +23,8 @@ defineProps<{
 }>();
 
 const { loadCategoryList } = useCategory();
+const { isAuthenticated, loadUser } = useUser();
+const router = useRouter();
 const { isOpen, toggle, close } = useDisclosure();
 const {
   isOpen: wishlistIsOpen,
@@ -49,44 +51,33 @@ const filteredCategories: any = computed(() =>
     (category: any) => category.name === 'WOMEN' || category.name === 'MEN'
   )
 );
+const bannerDetails = {
+  image: '/images/watch.png',
+  title: 'New in designer watches',
+};
 
 const inputValue = ref('');
 const search = () => {
   // eslint-disable-next-line no-alert
   alert(`Successfully found 10 results for ${inputValue.value}`);
 };
-const actionItems = [
-  {
-    icon: SfIconShoppingCart,
-    label: '',
-    ariaLabel: 'Cart',
-    role: 'button',
-    badge: true,
-    link: '/cart',
-  },
-  {
-    icon: SfIconPerson,
-    label: 'Log in',
-    ariaLabel: 'Log in',
-    role: 'login',
-    badge: false,
-    link: '/my-account/personal-data',
-  },
-];
-
-const bannerDetails = {
-  image: '/images/watch.png',
-  title: 'New in designer watches',
-};
 
 const wishlistTotalItems: any = ref();
-
 const setWishlistCount = async (count: number) => {
   wishlistTotalItems.value = count;
 };
-
 const handleWishlistSideBar = async () => {
   wishlistToggle();
+};
+
+const user = computed(() => (isAuthenticated.value ? 'Mahade' : 'Log In'));
+const handleAccountClick = async () => {
+  if (isAuthenticated.value) {
+    // await loadUser();
+    router.push('/my-account');
+  } else {
+    router.push('/login');
+  }
 };
 </script>
 
@@ -100,7 +91,7 @@ const handleWishlistSideBar = async () => {
       ref="menuRef"
       :class="[
         'h-14 md:h-20 flex z-50 md:sticky md:top-0 md:shadow-md flex-wrap md:flex-nowrap w-full py-2 md:py-5 border-0 bg-primary-700 border-neutral-200 md:z-10',
-        { 'bg-primary-700 text-white': filled },
+        { 'bg-[#02C652] text-white': filled },
         { 'bg-white border-b border-neutral-200': !filled },
       ]"
     >
@@ -108,7 +99,7 @@ const handleWishlistSideBar = async () => {
         class="flex items-center justify-between lg:justify-start h-full w-full narrow-container"
       >
         <NuxtLink to="/" aria-label="Sf Homepage" class="h-6 md:h-7 -mt-1.5">
-          <VsfLogo />
+          <VsfLogo :filled="filled" />
         </NuxtLink>
         <SfButton
           v-if="filled"
@@ -288,29 +279,36 @@ const handleWishlistSideBar = async () => {
             />
           </div>
           <SfButton
-            v-for="{ ariaLabel, label, icon, link, badge, role } in actionItems"
-            :key="ariaLabel"
             class="group relative text-white hover:text-white active:text-white hover:bg-primary-800 active:bg-primary-900 mr-1 -ml-0.5 rounded-md"
-            :aria-label="ariaLabel"
+            aria-label="    ariaLabel: 'Cart',
+"
             :tag="NuxtLink"
-            :to="link"
+            to="/cart"
             variant="tertiary"
             square
           >
             <template #prefix>
-              <Component :is="icon" />
+              <SfIconShoppingCart />
               <SfBadge
-                v-if="badge"
                 content="3"
                 class="outline outline-primary-700 bg-white !text-neutral-900 group-hover:outline-primary-800 group-active:outline-primary-900 flex justify-center"
                 data-testid="cart-badge"
               />
             </template>
-            <span
-              v-if="role === 'login'"
-              class="hidden lg:inline-flex whitespace-nowrap pr-2"
-              >{{ label }}</span
-            >
+          </SfButton>
+          <SfButton
+            class="group relative text-white hover:text-white active:text-white hover:bg-primary-800 active:bg-primary-900 mr-1 -ml-0.5 rounded-md"
+            aria-label="Log In"
+            variant="tertiary"
+            square
+            @click="handleAccountClick"
+          >
+            <template #prefix>
+              <SfIconPerson />
+            </template>
+            <span class="hidden lg:inline-flex whitespace-nowrap pr-2">
+              {{ user }}
+            </span>
           </SfButton>
         </nav>
         <div v-if="filled">

@@ -4,6 +4,7 @@ import { useMailing } from './useMailing';
 import { useProduct } from './useProduct';
 import { useProductAttributes } from './useProductAttributes';
 import { useUiHelpers } from './useUiHelpers';
+import { useUser } from './useUser';
 import { useWishlist } from './useWishlist';
 
 export {
@@ -14,4 +15,5 @@ export {
   useWishlist,
   useUiHelpers,
   useMailing,
+  useUser,
 };

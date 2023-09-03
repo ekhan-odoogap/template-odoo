@@ -7,7 +7,8 @@ defineProps<{
 <template>
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    class="fill-current h-full w-auto"
+    class="h-full w-auto"
+    :class="filled ? '!fill-white' : '!fill-[#02C652]'"
     viewBox="0 0 205 28"
     data-v-inspector="components/ui/VsfLogo.vue:2:3"
   >

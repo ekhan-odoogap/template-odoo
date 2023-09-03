@@ -1,43 +1,59 @@
+<script setup lang="ts">
+import { useUser } from '@/composables';
+import {
+  SfButton,
+  SfInput,
+  SfCheckbox,
+  SfLink,
+  SfModal,
+  useDisclosure,
+} from '@storefront-ui/vue';
+import { useToast } from 'vue-toastification';
+
+definePageMeta({
+  layout: false,
+});
+
+const NuxtLink = resolveComponent('NuxtLink');
+const { isOpen, open } = useDisclosure();
+const toast = useToast();
+const { error, loading, register } = useUser();
+
+const form: any = ref({});
+const createAccount = ref<boolean>(false);
+
+const handleSignup = async () => {
+  await register({
+    name: form.value.name,
+    email: form.value.email,
+    password: form.value.password,
+  });
+
+  if (!error.value.login) {
+    toast.success('Welcome! You are logged in');
+  } else {
+    toast.error(error?.value?.login);
+  }
+};
+</script>
+
 <template>
   <div>
     <NuxtLayout name="auth" :heading="$t('auth.signup.heading')">
-      <UiAlert
-        class="w-full p-4 md:p-6 mb-6 !justify-start typography-text-base"
-        variant="neutral"
-      >
-        <P keypath="auth.signup.bannerText" scope="global">
-          <template #login>
-            <SfLink
-              :tag="NuxtLink"
-              to="/login"
-              class="focus:outline focus:outline-offset-2 focus:outline-2 outline-secondary-600 rounded"
-            >
-              {{ $t('auth.login.heading') }}
-            </SfLink>
-          </template>
-        </P>
-      </UiAlert>
-
       <form
         data-testid="signup-form"
         class="flex flex-col md:border md:border-neutral-200 rounded-md gap-4 md:p-6"
-        @submit.prevent="open"
+        @submit.prevent="
+          open();
+          handleSignup();
+        "
       >
         <label>
-          <FormLabel>{{ $t('form.firstNameLabel') }} *</FormLabel>
+          <FormLabel>{{ $t('form.NameLabel') }} *</FormLabel>
           <SfInput
-            name="firstName"
+            name="name"
             autocomplete="given-name"
-            v-model="firstNameModel"
-            required
-          />
-        </label>
-        <label>
-          <FormLabel>{{ $t('form.lastNameLabel') }} *</FormLabel>
-          <SfInput
-            name="lastName"
-            autocomplete="family-name"
-            v-model="lastNameModel"
+            v-model="form.name"
             required
           />
         </label>
@@ -47,7 +63,7 @@
             name="email"
             type="email"
             autocomplete="email"
-            v-model="emailModel"
+            v-model="form.email"
             required
           />
         </label>
@@ -57,7 +73,7 @@
             <FormPasswordInput
               name="password"
               autocomplete="current-password"
-              v-model="passwordModel"
+              v-model="form.password"
               required
             />
             <FormHelperText class="mb-2">{{
@@ -69,7 +85,7 @@
         <div class="flex items-center">
           <SfCheckbox
             id="terms"
-            v-model="termsAndConditionsModel"
+            v-model="createAccount"
             value="value"
             class="peer"
             required
@@ -91,26 +107,6 @@
             </i18n-t>
           </label>
         </div>
-
-        <div class="flex mb-2">
-          <SfCheckbox
-            id="subscription"
-            v-model="subscriptionsModel"
-            value="value"
-            class="peer mt-0.5"
-          />
-          <label
-            class="ml-3 text-base text-neutral-900 cursor-pointer font-body peer-disabled:text-disabled-900"
-            for="subscription"
-          >
-            {{ $t('form.subscriptionLabel') }}
-          </label>
-        </div>
-
-        <p class="text-sm text-neutral-500 mt-0.5 mb-2">
-          {{ $t('form.asterixHint') }}
-        </p>
-
         <SfButton type="submit" size="lg" class="w-full">
           {{ $t('auth.signup.createButton') }}
         </SfButton>
@@ -173,28 +169,3 @@
     </NuxtLayout>
   </div>
 </template>
-
-<script setup lang="ts">
-import {
-  SfButton,
-  SfInput,
-  SfCheckbox,
-  SfLink,
-  SfModal,
-  useDisclosure,
-} from '@storefront-ui/vue';
-
-definePageMeta({
-  layout: false,
-});
-
-const firstNameModel = ref('');
-const lastNameModel = ref('');
-const emailModel = ref('');
-const passwordModel = ref('');
-const termsAndConditionsModel = ref<boolean>();
-const subscriptionsModel = ref<boolean>();
-
-const NuxtLink = resolveComponent('NuxtLink');
-const { isOpen, open } = useDisclosure();
-</script>

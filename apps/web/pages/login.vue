@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useUser } from '@/composables';
 import {
   SfButton,
   SfLink,
@@ -6,26 +7,30 @@ import {
   SfInput,
   SfLoaderCircular,
 } from '@storefront-ui/vue';
+import { useToast } from 'vue-toastification';
 
 definePageMeta({
   layout: false,
 });
 
 const NuxtLink = resolveComponent('NuxtLink');
+const toast = useToast();
+const { error, loading, login } = useUser();
 
-const router = useRouter();
+const form: any = ref({});
+const rememberMe = ref<boolean>(false);
 
-const email = ref('');
-const password = ref('');
-const rememberMe = ref<boolean>();
-const isLoading = ref<boolean>();
+const handleLogin = async () => {
+  // await login({
+  //   email: form.value.email,
+  //   password: form.value.password,
+  // });
 
-const login = () => {
-  isLoading.value = true;
-  // mimics waiting an async api call
-  setTimeout(() => {
-    void router.push('/').then(() => (isLoading.value = false));
-  }, 4000);
+  if (!error.value.login) {
+    toast.success('Welcome! You are logged in');
+  } else {
+    toast.error(error?.value?.login);
+  }
 };
 </script>
 
@@ -33,7 +38,7 @@ const login = () => {
   <div>
     <NuxtLayout name="auth" :heading="$t('auth.login.heading')">
       <form
-        @submit.prevent="login"
+        @submit.prevent="handleLogin"
         class="border-neutral-200 md:border flex flex-col gap-4 md:p-6 rounded-md"
       >
         <label>
@@ -42,7 +47,7 @@ const login = () => {
             name="email"
             type="email"
             autocomplete="email"
-            v-model="email"
+            v-model="form.email"
             required
           />
         </label>
@@ -52,7 +57,7 @@ const login = () => {
           <FormPasswordInput
             name="password"
             autocomplete="current-password"
-            v-model="password"
+            v-model="form.password"
             required
           />
         </label>
@@ -62,9 +67,9 @@ const login = () => {
           {{ $t('auth.login.rememberMeLabel') }}
         </label>
 
-        <SfButton type="submit" class="mt-2" :disabled="isLoading">
+        <SfButton type="submit" class="mt-2" :disabled="loading">
           <SfLoaderCircular
-            v-if="isLoading"
+            v-if="loading"
             class="flex justify-center items-center"
             size="base"
           />
@@ -81,7 +86,11 @@ const login = () => {
         class="mt-6 w-full p-4 md:p-6 !justify-start typography-text-base"
         variant="neutral"
       >
-        <i18n-t tag="span" keypath="auth.login.createAccountBanner" scope="global">
+        <i18n-t
+          tag="span"
+          keypath="auth.login.createAccountBanner"
+          scope="global"
+        >
           <SfLink :tag="NuxtLink" to="/signup" variant="primary">
             {{ $t('auth.login.createAccountLinkLabel') }}
           </SfLink>
