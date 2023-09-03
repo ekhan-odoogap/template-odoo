@@ -9,14 +9,18 @@ export const useUser: any = () => {
     register: null,
     updateUser: null,
     resetPassword: null,
+    updatePassword: null,
   });
   const isAuthenticated = ref(true);
+  const user = ref('Mahade');
+
+  const resetPasswordErrors = () => (errors.value = null);
 
   const loadAuthUser = async () => {
     try {
       loading.value = true;
       const user = sdk.odoo.config.app.$cookies.get('odoo-user');
-
+      user.value = user;
       if (!user) {
         const { data } = await sdk.odoo.loadUser();
         sdk.odoo.config.app.$cookies.set('odoo-user', data?.partner, {
@@ -24,7 +28,6 @@ export const useUser: any = () => {
         });
         return data?.partner;
       }
-      return user;
     } catch (err) {
       error.user = err;
     } finally {
@@ -32,7 +35,7 @@ export const useUser: any = () => {
     }
   };
 
-  const register = async (params?: any) => {
+  const register = async (params: any) => {
     try {
       loading.value = true;
       const { data } = await sdk.odoo.signUpUser(params);
@@ -62,16 +65,7 @@ export const useUser: any = () => {
     }
   };
 
-  const updateUser = async ({
-    currentUser,
-    updatedUserData,
-    customQuery,
-  }: any) => {
-    const params: any = {
-      id: currentUser.id,
-      name: updatedUserData.name,
-      email: updatedUserData.email,
-    };
+  const updateUser = async (params: any) => {
     try {
       loading.value = true;
       const { data } = await sdk.odoo.updateAccount(params, customQuery);
@@ -107,15 +101,37 @@ export const useUser: any = () => {
     }
   };
 
+  const updatePassword = async (currentPassword: any, newPassword: any) => {
+    resetPasswordErrors();
+
+    loading.value = true;
+
+    try {
+      const { data } = await sdk.odoo.updatePassword(
+        { currentPassword, newPassword }
+      );
+
+      if (data.updatePassword) {
+        return data.updatePassword;
+      }
+    } catch (err) {
+      error.updatePassword = err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     loading,
     error: computed(() => error),
     isAuthenticated,
+    user,
     loadAuthUser,
     register,
     logIn,
     updateUser,
     logOut,
     sendResetPassword,
+    updatePassword
   };
 };

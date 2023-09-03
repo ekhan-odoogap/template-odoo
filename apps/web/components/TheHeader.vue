@@ -23,7 +23,7 @@ defineProps<{
 }>();
 
 const { loadCategoryList } = useCategory();
-const { isAuthenticated, loadUser } = useUser();
+const { isAuthenticated, loadUser, user } = useUser();
 const router = useRouter();
 const { isOpen, toggle, close } = useDisclosure();
 const {
@@ -70,7 +70,6 @@ const handleWishlistSideBar = async () => {
   wishlistToggle();
 };
 
-const user = computed(() => (isAuthenticated.value ? 'Mahade' : 'Log In'));
 const handleAccountClick = async () => {
   if (isAuthenticated.value) {
     // await loadUser();

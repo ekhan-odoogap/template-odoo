@@ -1,3 +1,79 @@
+<script setup lang="ts">
+import { useUser } from '@/composables';
+import {
+  SfButton,
+  SfIconClose,
+  SfModal,
+  useDisclosure,
+  SfInput,
+  SfIconVisibility,
+  SfLoaderCircular,
+} from '@storefront-ui/vue';
+import { unrefElement } from '@vueuse/core';
+import { useToast } from 'vue-toastification';
+
+definePageMeta({
+  layout: 'account',
+});
+
+const { isOpen, open, close } = useDisclosure();
+const toast = useToast();
+const { loading, error, updateUser, user } = useUser();
+
+const lastActiveElement = ref();
+const modalElement = ref();
+const openedForm = ref('');
+const passwordVisible = ref(false);
+const firstNewPasswordVisible = ref(false);
+const secondNewPasswordVisible = ref(false);
+
+const userPasswords: any = ref({});
+
+const openModal = async (modalName: string) => {
+  openedForm.value = modalName;
+  lastActiveElement.value = document.activeElement;
+  open();
+  await nextTick();
+  unrefElement(modalElement).focus();
+};
+const closeModal = () => {
+  close();
+  lastActiveElement.value.focus();
+};
+
+const form: any = ref({});
+const handleUpdateUser = async () => {
+  const response = await updateUser({
+    user: {
+      ...user,
+      name: form.value.name,
+      email: form.value.email,
+    },
+  });
+  if (response) {
+    toast.success('Successfully updated!');
+    closeModal();
+  }
+  if (error.updateUser) {
+    toast.success(error.value.updateUser);
+  }
+};
+
+const handleUpdatePassword = async () => {
+  // const response = await updatePassword(
+  //   form.value.currentPassword,
+  //   form.value.newPassword
+  // );
+
+  if (response) {
+    toast.success('Successfully updated!');
+    closeModal();
+  } else {
+    toast.success(error.value.updateUser);
+  }
+};
+</script>
+
 <template>
   <UiDivider class="w-screen -mx-4 md:col-span-3 md:w-auto md:mx-0" />
   <AccountProfileData
@@ -9,6 +85,7 @@
     <p>Mahade Hasan</p>
     <p>mahade@gmail.com</p>
   </AccountProfileData>
+
   <UiDivider class="w-screen -mx-4 md:col-span-3 md:w-auto md:mx-0" />
   <AccountProfileData
     class="col-span-3"
@@ -47,28 +124,26 @@
       </header>
 
       <div v-if="openedForm === 'profile'">
-        <form @submit.prevent="closeModal" data-testid="account-forms-name">
+        <form
+          @submit.prevent="handleUpdateUser"
+          data-testid="account-forms-name"
+        >
           <label class="block">
-            <UiFormLabel>{{
+            <FormLabel>{{
               $t('account.accountSettings.personalData.yourName')
-            }}</UiFormLabel>
+            }}</FormLabel>
             <SfInput
               name="firstname"
               type="text"
-              v-model="userData.firstName"
+              v-model="form.name"
               required
             />
           </label>
           <label class="block mt-4">
-            <UiFormLabel>{{
+            <FormLabel>{{
               $t('account.accountSettings.personalData.yourEmail')
-            }}</UiFormLabel>
-            <SfInput
-              name="email"
-              type="email"
-              v-model="userData.email"
-              required
-            />
+            }}</FormLabel>
+            <SfInput name="email" type="email" v-model="form.email" required />
           </label>
           <div
             class="mt-6 flex flex-col-reverse md:flex-row md:justify-end gap-4"
@@ -76,8 +151,15 @@
             <SfButton type="reset" variant="secondary" @click="closeModal">
               {{ $t('contactInfo.cancel') }}
             </SfButton>
-            <SfButton type="submit" class="min-w-[120px]">
-              {{ $t('contactInfo.save') }}
+            <SfButton type="submit" :disabled="loading">
+              <SfLoaderCircular
+                v-if="loading"
+                class="flex justify-center items-center"
+                size="base"
+              />
+              <span v-else>
+                {{ $t('contactInfo.save') }}
+              </span>
             </SfButton>
           </div>
         </form>
@@ -85,17 +167,17 @@
 
       <div v-else-if="openedForm === 'passwordChange'">
         <form
-          @submit.prevent="$emit('on-save')"
+          @submit.prevent="handleUpdatePassword"
           data-testid="account-forms-password"
         >
           <label class="block">
-            <UiFormLabel>{{
+            <FormLabel>{{
               $t('account.accountSettings.personalData.currentPassword')
-            }}</UiFormLabel>
+            }}</FormLabel>
             <SfInput
               name="password"
               :type="passwordVisible ? 'text' : 'password'"
-              v-model="userPasswords.oldPassword"
+              v-model="userPasswords.currentPassword"
               required
             >
               <template #suffix>
@@ -109,13 +191,13 @@
             </SfInput>
           </label>
           <label class="block my-4">
-            <UiFormLabel>{{
+            <FormLabel>{{
               $t('account.accountSettings.personalData.newPassword')
-            }}</UiFormLabel>
+            }}</FormLabel>
             <SfInput
               name="password"
               :type="firstNewPasswordVisible ? 'text' : 'password'"
-              v-model="userPasswords.firstNewPassword"
+              v-model="form.newPassword"
               required
             >
               <template #suffix>
@@ -134,13 +216,13 @@
             >
           </label>
           <label class="block">
-            <UiFormLabel>{{
+            <FormLabel>{{
               $t('account.accountSettings.personalData.newPasswordAgain')
-            }}</UiFormLabel>
+            }}</FormLabel>
             <SfInput
               name="password"
               :type="secondNewPasswordVisible ? 'text' : 'password'"
-              v-model="userPasswords.secondNewPassword"
+              v-model="form.repeatPassword"
               required
             >
               <template #suffix>
@@ -163,8 +245,15 @@
             >
               {{ $t('contactInfo.cancel') }}
             </SfButton>
-            <SfButton type="submit" class="min-w-[120px]">
-              {{ $t('account.accountSettings.personalData.changePassword') }}
+            <SfButton type="submit" class="min-w-[120px]" :disabled="loading">
+              <SfLoaderCircular
+                v-if="loading"
+                class="flex justify-center items-center"
+                size="base"
+              />
+              <span v-else>
+                {{ $t('account.accountSettings.personalData.changePassword') }}
+              </span>
             </SfButton>
           </div>
         </form>
@@ -172,43 +261,3 @@
     </SfModal>
   </UiOverlay>
 </template>
-
-<script setup lang="ts">
-import {
-  SfButton,
-  SfIconClose,
-  SfModal,
-  useDisclosure,
-  SfInput,
-  SfIconVisibility,
-} from '@storefront-ui/vue';
-import { unrefElement } from '@vueuse/core';
-
-definePageMeta({
-  layout: 'account',
-});
-
-const { isOpen, open, close } = useDisclosure();
-
-const lastActiveElement = ref();
-const modalElement = ref();
-const openedForm = ref('');
-const passwordVisible = ref(false);
-const firstNewPasswordVisible = ref(false);
-const secondNewPasswordVisible = ref(false);
-
-const userData: any = ref({});
-const userPasswords: any = ref({});
-
-const openModal = async (modalName: string) => {
-  openedForm.value = modalName;
-  lastActiveElement.value = document.activeElement;
-  open();
-  await nextTick();
-  unrefElement(modalElement).focus();
-};
-const closeModal = () => {
-  close();
-  lastActiveElement.value.focus();
-};
-</script>
