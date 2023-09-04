@@ -58,6 +58,12 @@ const breadcrumbs = computed(() => [
     ? []
     : [{ name: findCurrentPage.value?.label, link: currentPath.value }]),
 ]);
+
+const changeActivePage = async () => {
+  await logout();
+  router.push('/');
+  await load();
+};
 </script>
 
 <template>
@@ -71,7 +77,10 @@ const breadcrumbs = computed(() => [
       >
         {{ $t('account.heading') }}
       </h1>
-      <div v-else class="flex justify-between lg:justify-start items-center mb-10 mt-4">
+      <div
+        v-else
+        class="flex justify-between lg:justify-start items-center mb-10 mt-4"
+      >
         <div v-for="({ subsections }, i) in sections" :key="i">
           <div
             v-for="{ label, link } in subsections"
@@ -136,12 +145,14 @@ const breadcrumbs = computed(() => [
           <UiDivider />
           <ul>
             <SfListItem
-              :tag="NuxtLink"
-              to="/"
               class="py-4 md:py-2 mt-4 rounded-md active:bg-primary-100 !text-neutral-900"
             >
-              <template #prefix><SfIconBase /></template>
-              {{ $t('account.logout') }}
+              <template @click="changeActivePage" #prefix
+                ><SfIconBase />
+                <span>
+                  {{ $t('account.logout') }}
+                </span></template
+              >
             </SfListItem>
           </ul>
         </div>
@@ -160,4 +171,3 @@ const breadcrumbs = computed(() => [
   <TheFooter />
   <BottomNavbar />
 </template>
-
