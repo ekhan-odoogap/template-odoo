@@ -1,9 +1,38 @@
+<script setup lang="ts">
+import { useCheckout } from '@/composables';
+import {
+  SfButton,
+  SfIconClose,
+  SfModal,
+  useDisclosure,
+} from '@storefront-ui/vue';
+
+definePageMeta({
+  layout: 'account',
+});
+
+const { isOpen, open, close } = useDisclosure();
+const { loadShippingAddress } = useCheckout;
+
+// const ShippingAddress = loadShippingAddress();
+const userShippingAddress = ref({
+  name: 'Hieronim',
+  streetName: 'Oak Drive',
+  city: 'Colonie',
+  country: 'US',
+  phoneNumber: '+1 321 765 0987',
+  postalCode: '12205',
+  state: 'NY',
+});
+</script>
+
 <template>
   <UiDivider class="w-screen -mx-4 md:col-span-3 md:w-auto md:mx-0" />
   <AccountProfileData
     class="col-span-3"
     :header="$t('account.accountSettings.shippingDetails.shippingAddress')"
     :button-text="$t('account.accountSettings.personalData.edit')"
+    :delete-button="'Delete'"
     @on-click="open"
   >
     <p>
@@ -44,33 +73,8 @@
       <FormAddAddress
         :saved-address="userShippingAddress"
         type="shippingAddress"
-        @on-save="close"
         @on-close="close"
       />
     </SfModal>
   </UiOverlay>
 </template>
-
-<script setup lang="ts">
-import {
-  SfButton,
-  SfIconClose,
-  SfModal,
-  useDisclosure,
-} from '@storefront-ui/vue';
-
-definePageMeta({
-  layout: 'account',
-});
-const { isOpen, open, close } = useDisclosure();
-
-const userShippingAddress = ref({
-  name: 'Hieronim',
-  streetName: 'Oak Drive',
-  city: 'Colonie',
-  country: 'US',
-  phoneNumber: '+1 321 765 0987',
-  postalCode: '12205',
-  state: 'NY',
-});
-</script>

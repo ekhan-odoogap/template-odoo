@@ -1,5 +1,6 @@
 import { useCart } from './useCart';
 import { useCategory } from './useCategory';
+import { useCheckout } from './useCheckout';
 import { useMailing } from './useMailing';
 import { useProduct } from './useProduct';
 import { useProductAttributes } from './useProductAttributes';
@@ -16,4 +17,5 @@ export {
   useUiHelpers,
   useMailing,
   useUser,
+  useCheckout,
 };

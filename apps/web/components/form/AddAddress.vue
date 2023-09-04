@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useCheckout } from '@/composables';
 import {
   SfButton,
   SfCheckbox,
@@ -6,23 +7,25 @@ import {
   SfLoaderCircular,
   SfSelect,
 } from '@storefront-ui/vue';
+import { useToast } from 'vue-toastification';
 
-const isCartUpdateLoading = false;
-
+const emit = defineEmits(['on-save', 'on-close']);
 const props = defineProps({
   savedAddress: {
     type: Object,
     required: true,
   },
   type: {
-    type: [String],
+    type: String,
     required: true,
   },
 });
 
-const { savedAddress }:any = toRefs(props);
+const { savedAddress }: any = toRefs(props);
+const toast = useToast();
+const { loading, error, updateShippingAddress } = useCheckout();
 
-const defaultValues = ref({
+const form: any = ref({
   name: savedAddress?.name ?? '',
   streetName: savedAddress?.value?.streetName ?? '',
   phone: savedAddress?.value?.phoneNumber ?? '',
@@ -33,21 +36,35 @@ const defaultValues = ref({
 });
 const countries = ['US'];
 const states = ['California'];
-defineEmits(['on-save', 'on-close']);
+const updateAddress = async () => {
+  const response = await updateShippingAddress({
+    params: {
+      ...form,
+      countryId: Number(form.country.id),
+      stateId: Number(form.state.id),
+    },
+  });
+  if (response) {
+    toast.success('Successfully Updated');
+    emit('on-close');
+  } else {
+    toast.error(error.updateShippingAddress);
+  }
+};
 </script>
 
 <template>
   <form
     class="grid grid-cols-1 md:grid-cols-[50%_1fr_120px] gap-4"
     data-testid="address-form"
-    @submit.prevent="$emit('on-close')"
+    @submit.prevent="updateAddress"
   >
     <label>
       <FormLabel>{{ $t('form.NameLabel') }}</FormLabel>
       <SfInput
         name="name"
         autocomplete="given-name"
-        v-model="defaultValues.name"
+        v-model="form.name"
         required
       />
     </label>
@@ -56,7 +73,7 @@ defineEmits(['on-save', 'on-close']);
       <SfInput
         name="streetName"
         autocomplete="family-name"
-        v-model="defaultValues.streetName"
+        v-model="form.streetName"
         required
       />
     </label>
@@ -66,14 +83,14 @@ defineEmits(['on-save', 'on-close']);
         name="phone"
         type="tel"
         autocomplete="tel"
-        v-model="defaultValues.phone"
+        v-model="form.phone"
         required
       />
     </label>
     <label class="md:col-span-3">
       <FormLabel>{{ $t('form.countryLabel') }}</FormLabel>
       <SfSelect
-        v-model="defaultValues.country"
+        v-model="form.country"
         name="country"
         :placeholder="$t('form.selectPlaceholder')"
         autocomplete="country-name"
@@ -87,7 +104,7 @@ defineEmits(['on-save', 'on-close']);
     <label class="md:col-span-3">
       <FormLabel>{{ $t('form.stateLabel') }}</FormLabel>
       <SfSelect
-        v-model="defaultValues.state"
+        v-model="form.state"
         name="state"
         :placeholder="$t('form.selectPlaceholder')"
         autocomplete="state-name"
@@ -102,7 +119,7 @@ defineEmits(['on-save', 'on-close']);
       <SfInput
         name="city"
         autocomplete="address-level2"
-        v-model="defaultValues.city"
+        v-model="form.city"
         required
       />
     </label>
@@ -111,7 +128,7 @@ defineEmits(['on-save', 'on-close']);
       <SfInput
         name="postalCode"
         autocomplete="postal-code"
-        v-model="defaultValues.postalCode"
+        v-model="form.postalCode"
         required
       />
     </label>
@@ -135,13 +152,9 @@ defineEmits(['on-save', 'on-close']);
       >
         {{ $t('contactInfo.cancel') }}
       </SfButton>
-      <SfButton
-        type="submit"
-        class="min-w-[120px]"
-        :disabled="isCartUpdateLoading"
-      >
+      <SfButton type="submit" class="min-w-[120px]" :disabled="loading">
         <SfLoaderCircular
-          v-if="isCartUpdateLoading"
+          v-if="loading"
           class="flex justify-center items-center"
           size="sm"
         />

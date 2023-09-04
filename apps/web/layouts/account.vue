@@ -123,10 +123,6 @@ const sections = [
         link: '/my-account/personal-data',
       },
       {
-        label: t('account.accountSettings.section.billingDetails'),
-        link: '/my-account/billing-details',
-      },
-      {
         label: t('account.accountSettings.section.shippingDetails'),
         link: '/my-account/shipping-details',
       },
