@@ -19,45 +19,6 @@
     >
   </div>
   <div v-else class="col-span-3">
-    <ul
-      class="md:hidden my-4 last-of-type:mb-0"
-      v-for="{ id, date, paymentAmount, status } in data"
-      :key="id"
-    >
-      <li>
-        <p class="block typography-text-sm font-medium">
-          {{ $t('account.ordersAndReturns.orderId') }}
-        </p>
-        <span class="block typography-text-sm mb-2">{{ id }}</span>
-      </li>
-      <li>
-        <p class="block typography-text-sm font-medium">
-          {{ $t('account.ordersAndReturns.orderDate') }}
-        </p>
-        <span class="block typography-text-sm mb-2">{{ date }}</span>
-      </li>
-      <li>
-        <p class="block typography-text-sm font-medium">
-          {{ $t('account.ordersAndReturns.amount') }}
-        </p>
-        <span class="block typography-text-sm mb-2">${{ paymentAmount }}</span>
-      </li>
-      <li class="flex flex-wrap items-center mb-2">
-        <p class="block typography-text-sm -mb-1.5 font-medium flex-[100%]">
-          {{ $t('account.ordersAndReturns.status') }}
-        </p>
-        <span class="block typography-text-sm flex-1">{{ status }}</span>
-        <SfButton
-          :tag="NuxtLink"
-          size="sm"
-          variant="tertiary"
-          :to="`'/my-account/my-orders/'${id}`"
-        >
-          {{ $t('account.ordersAndReturns.details') }}</SfButton
-        >
-      </li>
-      <UiDivider class="w-screen -mx-4 md:col-span-3 md:w-auto md:mx-0" />
-    </ul>
     <table class="hidden md:block text-left typography-text-sm mx-4">
       <caption class="hidden">
         List of orders
@@ -67,6 +28,7 @@
           <th class="py-4 pr-4 font-medium">
             {{ $t('account.ordersAndReturns.orderId') }}
           </th>
+          <th class="py-4 pr-4 font-medium">Order Name</th>
           <th class="py-4 px-4 font-medium lg:whitespace-nowrap">
             {{ $t('account.ordersAndReturns.orderDate') }}
           </th>
@@ -81,23 +43,27 @@
       </thead>
       <tbody>
         <tr
-          v-for="{ id, date, paymentAmount, status } in data"
+          v-for="{ id, name, date, paymentAmount, status } in data"
           :key="id"
           class="border-b border-neutral-200"
         >
           <td class="py-4 pr-4 lg:whitespace-nowrap">{{ id }}</td>
+          <td class="py-4 pr-4 lg:whitespace-nowrap">{{ name }}</td>
           <td class="p-4 lg:whitespace-nowrap">{{ date }}</td>
           <td class="p-4">${{ paymentAmount }}</td>
           <td :class="['p-4', { 'text-negative-700': status === 'Cancelled' }]">
             {{ status }}
           </td>
           <td class="py-1.5 pl-4 text-right w-full">
+            <SfButton :tag="NuxtLink" size="sm" variant="tertiary">
+              {{ $t('account.ordersAndReturns.details') }}</SfButton
+            >
             <SfButton
-              :tag="NuxtLink"
               size="sm"
               variant="tertiary"
+              @click="downloadOrder(parseInt(id))"
             >
-              {{ $t('account.ordersAndReturns.details') }}</SfButton
+              Download</SfButton
             >
           </td>
         </tr>
@@ -107,38 +73,71 @@
 </template>
 
 <script setup lang="ts">
+import { useUserOrder } from '@/composables';
 import { SfButton } from '@storefront-ui/vue';
 
 definePageMeta({
   layout: 'account',
 });
 
+const NuxtLink = resolveComponent('NuxtLink');
+
+const { loading, orders, searchOrders } = useUserOrder();
+
+const currentOrder = await searchOrders();
+
 const data = ref([
   {
-    id: '0e4fec5a-61e6-48b8-94cc-d5f77687e2b0	',
+    id: '0e4fec5a',
+    name: 'Leather jacket Bully dark blue',
     date: '2022-08-11	',
     paymentAmount: '295.87',
     status: 'Completed',
   },
   {
-    id: '0e4fec5a-61e6-48b8-94cc-d5f77687e2b0	',
+    id: '0e4fec5a',
+    name: 'Leather jacket Bully dark blue',
     date: '2022-08-11	',
     paymentAmount: '295.87',
     status: 'Completed',
   },
   {
-    id: '0e4fec5a-61e6-48b8-94cc-d5f77687e2b0	',
+    id: '0e4fec5a',
+    name: 'Leather jacket Bully dark blue',
     date: '2022-08-11	',
     paymentAmount: '295.87',
-    status: 'Open',
+    status: 'Completed',
   },
   {
-    id: '0e4fec5a-61e6-48b8-94cc-d5f77687e2b0	',
+    id: '0e4fec5a',
+    name: 'Leather jacket Bully dark blue',
     date: '2022-08-11	',
     paymentAmount: '295.87',
-    status: 'Cancelled',
+    status: 'Completed',
   },
 ]);
+const downloadFile = (file: Blob | MediaSource, name: string) => {
+  const a = document.createElement('a');
+  document.body.appendChild(a);
+  a.style = 'display: none';
+  const url = window.URL.createObjectURL(file);
+  a.href = url;
+  a.download = name;
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
 
-const NuxtLink = resolveComponent('NuxtLink');
+const downloadOrders = async () => {
+  downloadFile(
+    new Blob([JSON.stringify(orders.value)], { type: 'application/json' }),
+    'orders.json'
+  );
+};
+
+const downloadOrder = async (id: number) => {
+  downloadFile(
+    new Blob([JSON.stringify(id)], { type: 'application/json' }),
+    'order ' + id + '.json'
+  );
+};
 </script>

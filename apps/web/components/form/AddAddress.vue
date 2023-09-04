@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useCheckout } from '@/composables';
+import { useCheckout, useCountrySearch } from '@/composables';
 import {
   SfButton,
   SfCheckbox,
@@ -12,7 +12,7 @@ import { useToast } from 'vue-toastification';
 const emit = defineEmits(['on-save', 'on-close']);
 const props = defineProps({
   savedAddress: {
-    type: Object,
+    type: Array,
     required: true,
   },
   type: {
@@ -24,18 +24,40 @@ const props = defineProps({
 const { savedAddress }: any = toRefs(props);
 const toast = useToast();
 const { loading, error, updateShippingAddress } = useCheckout();
+const {
+  loading: loadingCounties,
+  error: loadCountryError,
+  countries,
+  countryStates,
+  searchCountries,
+  searchCountryStates,
+} = useCountrySearch();
+
+// await searchCountries();
 
 const form: any = ref({
   name: savedAddress?.name ?? '',
   streetName: savedAddress?.value?.streetName ?? '',
   phone: savedAddress?.value?.phoneNumber ?? '',
-  country: savedAddress?.value?.country ?? '',
+  state: { id: String(savedAddress.value?.state?.id) || ' ' },
+  country: { id: String(savedAddress.value?.country?.id) || ' ' },
   city: savedAddress?.value?.city ?? '',
-  state: savedAddress?.value?.state ?? '',
   postalCode: savedAddress?.value?.postalCode ?? '',
 });
-const countries = ['US'];
-const states = ['California'];
+
+if (form?.country?.id && form.country.id !== 'null') {
+  await searchCountryStates(parseInt(form.country.id));
+}
+// watch(
+//   () => form.country.id,
+//   async () => {
+//     await searchCountryStates(form.country.id);
+//     if (!countryStates.value || countryStates.value.length === 0) {
+//       form.state.id = null;
+//     }
+//   }
+// );
+
 const updateAddress = async () => {
   const response = await updateShippingAddress({
     params: {
@@ -57,7 +79,7 @@ const updateAddress = async () => {
   <form
     class="grid grid-cols-1 md:grid-cols-[50%_1fr_120px] gap-4"
     data-testid="address-form"
-    @submit.prevent="updateAddress"
+    @submit.prevent="$emit('on-close')"
   >
     <label>
       <FormLabel>{{ $t('form.NameLabel') }}</FormLabel>
@@ -90,27 +112,37 @@ const updateAddress = async () => {
     <label class="md:col-span-3">
       <FormLabel>{{ $t('form.countryLabel') }}</FormLabel>
       <SfSelect
-        v-model="form.country"
+        v-model="form.country.id"
         name="country"
         :placeholder="$t('form.selectPlaceholder')"
         autocomplete="country-name"
         required
       >
-        <option v-for="country in countries" :key="country">
-          {{ country }}
+        <option
+          v-for="country in countries"
+          :key="country.id"
+          :value="country.id"
+        >
+          {{ country.name }}
         </option>
       </SfSelect>
     </label>
     <label class="md:col-span-3">
       <FormLabel>{{ $t('form.stateLabel') }}</FormLabel>
       <SfSelect
-        v-model="form.state"
+        v-model="form.state.id"
         name="state"
         :placeholder="$t('form.selectPlaceholder')"
         autocomplete="state-name"
         required
       >
-        <option v-for="state in states" :key="state">{{ state }}</option>
+        <option
+          v-for="state in countryStates"
+          :key="state.id"
+          :value="state.id"
+        >
+          {{ state.name }}
+        </option>
       </SfSelect>
     </label>
 

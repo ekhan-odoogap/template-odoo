@@ -12,39 +12,83 @@ definePageMeta({
 });
 
 const { isOpen, open, close } = useDisclosure();
-const { loadShippingAddress } = useCheckout;
+const { loadShippingAddress, deleteAddress } = useCheckout();
 
-// const ShippingAddress = loadShippingAddress();
-const userShippingAddress = ref({
-  name: 'Hieronim',
-  streetName: 'Oak Drive',
-  city: 'Colonie',
-  country: 'US',
-  phoneNumber: '+1 321 765 0987',
-  postalCode: '12205',
-  state: 'NY',
-});
+// const shippingAddress = loadShippingAddress();
+const shippingAddress = ref([
+  {
+    id: 1,
+    name: 'Hieronim',
+    streetName: 'Oak Drive',
+    city: 'Colonie',
+    country: 'US',
+    phoneNumber: '+1 321 765 0987',
+    postalCode: '12205',
+    state: 'NY',
+  },
+  {
+    id: 2,
+    name: 'Mahade',
+    streetName: 'Oak Drive',
+    city: 'Colonie',
+    country: 'US',
+    phoneNumber: '+1 321 765 0987',
+    postalCode: '12205',
+    state: 'NY',
+  },
+]);
 </script>
 
 <template>
   <UiDivider class="w-screen -mx-4 md:col-span-3 md:w-auto md:mx-0" />
-  <AccountProfileData
-    class="col-span-3"
-    :header="$t('account.accountSettings.shippingDetails.shippingAddress')"
-    :button-text="$t('account.accountSettings.personalData.edit')"
-    :delete-button="'Delete'"
-    @on-click="open"
+  <h2 class="typography-headline-4 font-bold">
+    {{ $t('account.accountSettings.shippingDetails.shippingAddress') }}
+  </h2>
+  <div
+    v-for="{
+      id,
+      name,
+      streetName,
+      city,
+      country,
+      phoneNumber,
+      postalCode,
+      state,
+    } in shippingAddress"
+    class="col-span-full"
   >
-    <p>
-      {{ userShippingAddress.name }}
-    </p>
-    <p>{{ userShippingAddress.phoneNumber }}</p>
-    <p>{{ userShippingAddress.streetName }}</p>
-    <p>
-      {{ userShippingAddress.city }}, {{ userShippingAddress.state }}
-      {{ userShippingAddress.postalCode }}
-    </p>
-  </AccountProfileData>
+    <div class="block">
+      <div class="flex justify-between">
+        <div>
+          <p>
+            {{ name }}
+          </p>
+          <p>{{ phoneNumber }}</p>
+          <p>{{ streetName }}</p>
+          <p>
+            {{ country }}, {{ city }}, {{ state }}
+            {{ postalCode }}
+          </p>
+        </div>
+        <div>
+          <SfButton
+            variant="tertiary"
+            size="sm"
+            class="self-start"
+            @click="open"
+            >Edit
+          </SfButton>
+          <SfButton
+            variant="tertiary"
+            size="sm"
+            class="self-start !text-red-600"
+            @click="deleteAddress(id)"
+            >Delete
+          </SfButton>
+        </div>
+      </div>
+    </div>
+  </div>
   <UiDivider class="w-screen -mx-4 md:col-span-3 md:w-auto md:mx-0" />
   <UiOverlay v-if="isOpen" :visible="isOpen">
     <SfModal
@@ -71,7 +115,7 @@ const userShippingAddress = ref({
         </h3>
       </header>
       <FormAddAddress
-        :saved-address="userShippingAddress"
+        :saved-address="shippingAddress"
         type="shippingAddress"
         @on-close="close"
       />

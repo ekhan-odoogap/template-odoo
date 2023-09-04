@@ -38,10 +38,15 @@ export const useCheckout: any = () => {
       }
     }
   };
+
+  const deleteAddress = async (params: any) => {
+    await sdk.oddo.deleteAddress(params);
+  };
   return {
     loading,
     loadShippingAddress,
     updateShippingAddress,
+    deleteAddress,
     error: computed(() => error),
   };
 };
