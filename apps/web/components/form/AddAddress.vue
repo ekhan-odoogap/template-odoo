@@ -21,9 +21,15 @@ const props = defineProps({
   },
 });
 
-const { savedAddress }: any = toRefs(props);
+const { savedAddress, type }: any = toRefs(props);
 const toast = useToast();
-const { loading, error, updateShippingAddress } = useCheckout();
+const {
+  loading,
+  error,
+  updateShippingAddress,
+  updateBillingAddress,
+  useShippingAsBillingAddress,
+} = useCheckout();
 const {
   loading: loadingCounties,
   error: loadCountryError,
@@ -36,13 +42,13 @@ const {
 // await searchCountries();
 
 const form: any = ref({
-  name: savedAddress?.name ?? '',
-  streetName: savedAddress?.value?.streetName ?? '',
-  phone: savedAddress?.value?.phoneNumber ?? '',
-  state: { id: String(savedAddress.value?.state?.id) || ' ' },
-  country: { id: String(savedAddress.value?.country?.id) || ' ' },
-  city: savedAddress?.value?.city ?? '',
-  postalCode: savedAddress?.value?.postalCode ?? '',
+  name: savedAddress.value?.name || '',
+  streetName: savedAddress?.value?.streetName || '',
+  phone: savedAddress?.value?.phoneNumber || '',
+  state: { id: ' ' },
+  country: { id: ' ' },
+  city: savedAddress?.value?.city || '',
+  postalCode: savedAddress?.value?.postalCode || '',
 });
 
 if (form?.country?.id && form.country.id !== 'null') {
@@ -59,18 +65,55 @@ if (form?.country?.id && form.country.id !== 'null') {
 // );
 
 const updateAddress = async () => {
-  const response = await updateShippingAddress({
-    params: {
-      ...form,
-      countryId: Number(form.country.id),
-      stateId: Number(form.state.id),
-    },
-  });
-  if (response) {
-    toast.success('Successfully Updated');
-    emit('on-close');
-  } else {
-    toast.error(error.updateShippingAddress);
+  if (type.value === 'shippingAddress') {
+    const response = await updateShippingAddress({
+      params: {
+        ...form,
+        countryId: Number(form.country.id),
+        stateId: Number(form.state.id),
+        type: 'Shipping',
+      },
+      customQuery: {
+        shippingAddAdress: 'customAddAddress',
+        shippingUpdateAddress: 'customUpdateAddress',
+      },
+    });
+    if (response) {
+      toast.success('Successfully Updated');
+      emit('on-close');
+    } else {
+      toast.error(error.updateShippingAddress);
+    }
+  }
+  if (type.value === 'billingAddress') {
+    const response = await updateBillingAddress({
+      params: {
+        ...form,
+        countryId: Number(form.country.id),
+        stateId: Number(form.state.id),
+        type: 'Billing',
+      },
+      customQuery: {
+        billingUpdateAddress: 'customUpdateAddress',
+        billingAddAddress: 'customAddAddress',
+      },
+    });
+    if (response) {
+      toast.success('Successfully Updated');
+      emit('on-close');
+    } else {
+      toast.error(error.updateShippingAddress);
+    }
+  }
+};
+
+const sameAsShipping = ref(false);
+const handleCheckSameAddress = async () => {
+  sameAsShipping.value = !sameAsShipping.value;
+  if (sameAsShipping.value) {
+    const shippingAddress = await useShippingAsBillingAddress();
+    form.value = shippingAddress;
+    await searchCountryStates(form.value?.country?.id);
   }
 };
 </script>
@@ -169,7 +212,11 @@ const updateAddress = async () => {
       v-if="props.type === 'billingAddress'"
       class="md:col-span-3 flex items-center gap-2"
     >
-      <SfCheckbox name="useAsShipping" />
+      <SfCheckbox
+        name="useAsShipping"
+        :selected="sameAsShipping"
+        @change="handleCheckSameAddress"
+      />
       {{ $t('form.useAsShippingLabel') }}
     </label>
 

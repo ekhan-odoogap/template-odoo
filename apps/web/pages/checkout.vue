@@ -1,11 +1,10 @@
 <script setup lang="ts">
+import { useCheckout } from '@/composables';
 import {
   SfButton,
   SfIconArrowBack,
   SfLoaderCircular,
-  SfIconClose,
   useDisclosure,
-  SfModal,
   SfIconBlock,
   SfListItem,
   SfRadio,
@@ -21,33 +20,27 @@ enum PaymentMethod {
 
 const NuxtLink = resolveComponent('NuxtLink');
 const { isOpen, open, close } = useDisclosure();
+const { loadShippingAddress } = useCheckout();
+
+// const shippingAddress = loadShippingAddress();
 const cart = ref({
   customerEmail: '',
 });
 const isLoading = false;
 const shippingAddress = ref({
-  firstName: 'Hieronim',
-  lastName: 'Anonim',
-  address1: 'Oak Drive',
-  address2: '3633',
-  city: 'Colonie',
+  name: 'Hieronim',
+  streetName: 'Oak Drive',
   country: 'US',
   phoneNumber: '+1 321 765 0987',
   postalCode: '12205',
-  state: 'NY',
-  titleCode: '',
 });
 const billingAddress = ref({
-  firstName: 'Hieronim',
+  name: 'Rafi',
   lastName: 'Anonim',
-  address1: 'Oak Drive',
-  address2: '3633',
+  streetName: 'Oak Drive',
   city: 'Colonie',
-  country: 'US',
   phoneNumber: '+1 321 765 0987',
   postalCode: '12205',
-  state: 'NY',
-  titleCode: '',
 });
 const shippingMethods = ref([
   {

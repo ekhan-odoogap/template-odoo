@@ -12,29 +12,25 @@ definePageMeta({
 });
 
 const { isOpen, open, close } = useDisclosure();
-const { loadShippingAddress, deleteAddress } = useCheckout();
+const { loadAddress, deleteAddress } = useCheckout();
 
-// const shippingAddress = loadShippingAddress();
+// const shippingAddress = loadAddress();
 const shippingAddress = ref([
   {
     id: 1,
     name: 'Hieronim',
     streetName: 'Oak Drive',
     city: 'Colonie',
-    country: 'US',
     phoneNumber: '+1 321 765 0987',
     postalCode: '12205',
-    state: 'NY',
   },
   {
     id: 2,
     name: 'Mahade',
     streetName: 'Oak Drive',
     city: 'Colonie',
-    country: 'US',
     phoneNumber: '+1 321 765 0987',
     postalCode: '12205',
-    state: 'NY',
   },
 ]);
 </script>

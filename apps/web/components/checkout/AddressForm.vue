@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useUser } from '@/composables';
 import {
   SfButton,
   SfIconClose,
@@ -17,6 +18,8 @@ const props = defineProps({
   },
 });
 
+const { isAuthenticated } = useUser();
+
 const { savedAddress }: any = toRefs(props);
 const { isOpen, open, close } = useDisclosure();
 </script>
@@ -27,19 +30,19 @@ const { isOpen, open, close } = useDisclosure();
       <h2 class="text-neutral-900 text-lg font-bold mb-4">
         {{ props.heading }}
       </h2>
-      <SfButton v-if="savedAddress" size="sm" variant="tertiary" @click="open">
+      <SfButton v-if="savedAddress && isAuthenticated" size="sm" variant="tertiary" @click="open">
         {{ $t('contactInfo.edit') }}
       </SfButton>
     </div>
 
-    <!-- <div v-if="savedAddress" class="mt-2 md:w-[520px]">
+    <div v-if="savedAddress" class="mt-2 md:w-[520px]">
       <p>{{ `${savedAddress.name}` }}</p>
       <p>{{ savedAddress.phoneNumber }}</p>
       <p>{{ `${savedAddress.streetName}` }}</p>
-      <p>{{ `${savedAddress.state}, {{ `${savedAddress.city}}, ${savedAddress.postalCode}` }}</p>
-    </div> -->
+      <p>{{ `${savedAddress.city}, ${savedAddress.state}, ${savedAddress.postalCode}` }}</p>
+    </div>
 
-    <div class="w-full md:max-w-[520px]">
+    <div v-else class="w-full md:max-w-[520px]">
       <p>{{ props.description }}</p>
       <SfButton class="mt-4 w-full md:w-auto" variant="secondary" @click="open">
         {{ props.buttonText }}
