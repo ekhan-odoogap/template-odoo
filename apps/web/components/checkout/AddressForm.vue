@@ -36,7 +36,7 @@ const { isOpen, open, close } = useDisclosure();
       <p>{{ `${savedAddress.name}` }}</p>
       <p>{{ savedAddress.phoneNumber }}</p>
       <p>{{ `${savedAddress.streetName}` }}</p>
-      <p>{{ `${savedAddress.state}, ${savedAddress.postalCode}` }}</p>
+      <p>{{ `${savedAddress.state}, {{ `${savedAddress.city}}, ${savedAddress.postalCode}` }}</p>
     </div> -->
 
     <div class="w-full md:max-w-[520px]">
